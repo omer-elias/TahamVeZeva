@@ -16,6 +16,10 @@ class Matat_Order_Management extends Matat_Site_Management {
 		add_filter( 'pre_get_posts', array( $this, 'matat_custom_post_sort' ) );
 		add_filter( 'bulk_actions-edit-shop_order', array( $this, 'matat_order_status_bulk_actions' ) );
 		add_filter( 'handle_bulk_actions-edit-shop_order', array( $this, 'matat_bulk_status_action_handler' ), 10, 3 );
+		add_filter( 'manage_edit-shop_order_columns', array($this,'matat_custom_shop_order_column'), 10, 1 );
+		add_action( 'manage_shop_order_posts_custom_column' , array($this,'matat_custom_shop_order_list_column_content'), 10, 2 );
+
+
 	}
 
 //	Create post status
@@ -109,17 +113,22 @@ class Matat_Order_Management extends Matat_Site_Management {
 
 	function matat_custom_post_sort( $query ) {
 
+		global $current_user; //get the current user
+		$user_role = $current_user->roles[0]; //display the current user's role
 		global $pagenow;
 		$qv               = &$query->query_vars;
 		$user_id          = 'user_' . get_current_user_id();
-		$branch_id        = get_field( 'user_branch', $user_id );
-		$currentUserRoles = wp_get_current_user()->roles;
+		$condition        = $pagenow == 'edit.php' && isset( $qv['post_type'] ) && $qv['post_type'] == 'shop_order';
+		$branch_id        = get_field( 'user_branches', $user_id );
 
-		if ( $pagenow == 'edit.php' && isset( $qv['post_type'] ) && $qv['post_type'] == 'shop_order' ) {
+		if ( $condition ) {
 			$query->set( 'meta_key', 'supply_date' );
 			$query->set( 'orderby', 'meta_value' );
 			$query->set( 'order', 'ASC' );
 
+		}
+		if ( $condition && $user_role != 'administrator' )
+		{
 			$query->set( 'meta_query', array(
 				array(
 					'key'   => 'branch_id',
@@ -127,12 +136,9 @@ class Matat_Order_Management extends Matat_Site_Management {
 					'compare' => 'IN'
 				)
 			) );
-
-
-
-
-
 		}
+
+
 
 		return $query;
 	}
@@ -151,7 +157,7 @@ class Matat_Order_Management extends Matat_Site_Management {
 		$billing_fields['branch']      = array(
 			'type'     => 'select',
 			'label'    => 'בחר סניף למשלוח',
-			'options'  => $this->create_branches_array(),
+			'options'  => $this->matat_create_branches_array(),
 			'class'    => array( 'form-row-wide' ),
 			'priority' => 25,
 			'required' => false,
@@ -162,7 +168,7 @@ class Matat_Order_Management extends Matat_Site_Management {
 	}
 
 	// Create array and to send him into billing field
-	function create_branches_array() {
+	function matat_create_branches_array() {
 		$args      = array( 'post_type' => 'branches' );
 		$the_query = new WP_Query( $args );
 		$branches  = array(
@@ -179,7 +185,53 @@ class Matat_Order_Management extends Matat_Site_Management {
 		return $branches;
 	}
 
+	// Add a Header
+	function matat_custom_shop_order_column( $columns ) {
+		// Add new columns
+		$columns['supply_date'] = __( 'תאריך אספקה', 'matat' );
+		$columns['branch'] = __( 'סניף', 'matat' );
 
+		return $columns;
+	}
+
+	//  Populate the Column
+	function matat_custom_shop_order_list_column_content( $column, $post_id ) {
+		// Get order object
+		$order = wc_get_order( $post_id );
+
+		// Is a WC_Order
+		if ( is_a( $order, 'WC_Order' ) ) {
+			// Compare column name
+			if ( $column == 'supply_date' ) {
+				// Get meta, use the correct meta key!
+				$supply_date = $order->get_meta( 'supply_date' );
+
+				// NOT empty
+				if ( ! empty( $supply_date ) ) {
+					// Output
+					echo $supply_date;
+				} else {
+					// Output
+					echo __( 'לא נמצא תאריך אספקה', 'matat' );
+				}
+			}
+			if ( $column == 'branch' ) {
+				// Get meta, use the correct meta key!
+				$branch = $order->get_meta( 'branch_id' );
+
+				// NOT empty
+				if ( ! empty( $branch ) ) {
+					// Output
+					echo get_post($branch)->post_title;
+				} else {
+					// Output
+					echo __( 'לא נבחר סניף', 'matat' );
+				}
+			}
+
+
+		}
+	}
 }
 
 new Matat_Order_Management();
