@@ -1,0 +1,158 @@
+/*
+Theme Name: Matat
+Theme URI: https://matat.co.il/
+Author: Amit Matat
+Author URI: https://matat.co.il/
+Description: Matat Main theme
+Version: 1.0
+License: Commercial Use only
+License URI: Commercial Use only
+Text Domain: matat
+*/
+body.rtl  {
+  direction: rtl;
+  text-align: inherit;
+}
+body.error404 {
+  /*background: #f3f3f4 url('assets/images/bg-error.png') 0 0/cover no-repeat;*/
+}
+noscript {
+  text-align: center;
+  padding: 15px;
+}
+
+.accessibility {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.accessibility:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  background: #051d2f;
+  padding: 10px 15px;
+  display: inline-block;
+  vertical-align: top;
+  margin: 5px;
+}
+
+#wrapper {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+#wrapper ~ .accessibility:focus {
+  z-index: 9999;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  left: auto;
+}
+.error-container {
+  text-align: center;
+  font-family: "Heebo", sans-serif;
+  padding: 20px 0;
+}
+
+.error-container .oops-text {
+  font-weight: 800;
+  font-size: 34px;
+  line-height: 1;
+  color: #686868;
+}
+
+.error-container .error-info {
+  font-size: 25px;
+  color: #a8aaad;
+  line-height: 1.2;
+}
+
+.error-container .error-img {
+  max-width: 819px;
+  margin: 0 auto;
+}
+
+.error-container .error-img img {
+  width: 100%;
+  height: auto;
+}
+
+.error-container .btn-back-home {
+  border-radius: 100px;
+  background: #a9abae;
+  color: #fff;
+  border: 1px solid #a9abae;
+  font-size: 16px;
+  line-height: 1.25;
+  padding: 10px;
+  min-width: 220px;
+  font-weight: 800;
+}
+
+.error-container .btn-back-home:hover {
+  color: #a9abae;
+  background: #fff;
+}
+
+@media (min-width: 768px) {
+  .error-container {
+    padding: 3.47vw 0;
+  }
+
+  .error-container .oops-text {
+    font-size: 6.53vw;
+  }
+
+  .error-container .error-info {
+    font-size: 4.51vw;
+  }
+
+  .error-container .btn-back-home {
+    font-size: 18px;
+    min-width: 230px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .error-container .btn-back-home {
+    font-size: 20px;
+    min-width: 240px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .error-container .btn-back-home {
+    font-size: 22px;
+    min-width: 250px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .error-container {
+    padding: 60px 0;
+  }
+
+  .error-container .oops-text {
+    font-size: 94px;
+  }
+
+  .error-container .error-info {
+    font-size: 65px;
+  }
+
+  .error-container .btn-back-home {
+    font-size: 24px;
+    min-width: 257px;
+  }
+}

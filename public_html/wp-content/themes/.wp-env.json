@@ -1,0 +1,16 @@
+{
+  "core": null,
+  "plugins": [
+    "https://downloads.wordpress.org/plugin/contact-form-7.5.2.2.zip",
+    "https://downloads.wordpress.org/plugin/textme-sms-integration.1.8.6.zip",
+    "https://downloads.wordpress.org/plugin/classic-editor.1.5.zip",
+    "https://downloads.wordpress.org/plugin/wordpress-seo.14.9.zip"
+  ],
+  "themes": [
+    "./matat-child",
+    "./matat"
+  ],
+  "config": {
+    "WP_DEBUG_DISPLAY": true
+  }
+}
