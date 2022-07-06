@@ -5,7 +5,6 @@ Namespace Matat;
 
 class Matat_Site_Management {
 
-// Git test push
 
 	public function __construct() {
 		add_action('init', array($this,'matat_register_types'));
