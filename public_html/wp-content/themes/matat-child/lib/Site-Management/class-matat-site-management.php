@@ -5,7 +5,7 @@ Namespace Matat;
 
 class Matat_Site_Management {
 
-
+// Git test push
 
 	public function __construct() {
 		add_action('init', array($this,'matat_register_types'));
@@ -70,7 +70,7 @@ class Matat_Site_Management {
 
 
 // Register post types
-	function matat_class_register_post_type($args, $label = '') {
+	function matat_class_register_post_type($args) {
 
 		$labels = array(
 			'name'               => __($args['label'], 'matat'),
