@@ -20,10 +20,14 @@ class Matat_Order_Management extends Matat_Site_Management {
 		add_filter( 'woocommerce_order_item_display_meta_key', array($this,'matat_order_item_display_meta_key'), 10, 3 );
 		add_filter( 'woocommerce_order_item_display_meta_value', array($this,'matat_order_item_display_meta_value'), 10, 3 );
 		add_filter( 'woocommerce_order_item_name', array($this,'update_order_item_name_custom'), 20, 3 );
+		add_filter( 'woocommerce_shop_order_search_fields', array($this,'woocommerce_shop_order_search_order_total') );
 
 	}
 
-
+	function woocommerce_shop_order_search_order_total( $search_fields ) {
+		$search_fields[] = 'production_order';
+		return $search_fields;
+	}
 
 	function order_splitter($order_id){
 		$completed_order = new WC_Order($order_id);
@@ -43,31 +47,34 @@ class Matat_Order_Management extends Matat_Site_Management {
 			'country'    => $completed_order->get_billing_country()
 		);
 
+		$new_order_args = array(
+			'customer_id' => $completed_order->get_customer_id(),
+			'status' => 'wc-pending',
+		);
+		$production_branch_id = get_field( 'production_branch', 'options' )->ID;
+
+		//create new order
+		$new_order = wc_create_order($new_order_args);
+
 		foreach($completed_order->get_items() as $item){
 			$is_prod = $item->get_meta('need_production');
-			if (!$item_splitted && $is_prod) {
+			if ($is_prod) {
 				$item_product = $item->get_product();
 				$product_id   = $item_product->get_id();
-				//create new order
-				$new_order_args = array(
-					'customer_id' => $completed_order->get_customer_id(),
-					'status' => 'wc-pending',
-				);
-				$new_order = wc_create_order($new_order_args);
+
 				$product_to_add = wc_get_product($product_id);
 				$new_order->add_product($product_to_add, 1, array());
 				$new_order->set_address($address, 'billing');
 				$new_order->set_address($address, 'shipping');
 				$new_order->update_status('wc-processing');
-				$new_order->add_order_note('This order created automatically');
+				$new_order->add_order_note(sprintf('הזמנת מטבח - מקושרת להזמנה %s', $completed_order->get_id(), ) );
 				$new_order->set_total(0);
 				$new_order->save();
+				$new_order->add_meta_data( 'branch_id', $production_branch_id, false );
+				$new_order->add_meta_data( 'production_order', $completed_order->get_id(), false );
+				$new_order->add_meta_data( 'supply_date', $completed_order->get_meta( 'supply_date' ), false );
 				$completed_order->remove_item($item->get_id());
 				$item_splitted = true;
-			} else  if ($item_splitted && $is_prod){
-				# This will ensure every 2 products are splitted (skipping the 2nd one)
-				$item_splitted = false;
-				continue;
 			}
 		}
 		return $new_order;
@@ -169,13 +176,20 @@ class Matat_Order_Management extends Matat_Site_Management {
 
 //	Add meta for order supply date
 	function matat_add_delivery_date_meta( $order, $data ) {
-		$date           = date_create( $data['supply_date'] );
-		$formatted_date = date_format( $date, 'd/m/Y' );
-		if ( $formatted_date ) {
-			$order->update_meta_data( 'supply_date', $formatted_date );
+		var_dump(strtotime($data['supply_date']));
+		$unix= strtotime($data['supply_date']);
+		if ( $unix ) {
+			$order->update_meta_data( 'supply_date', $unix );
+		}
+		else{
+			$order->update_meta_data( 'supply_date', 'לא נבחר תאריך' );
+
 		}
 		if ( $data['branch'] ) {
 			$order->add_meta_data( 'branch_id', intval($data['branch']), false );
+		}else{
+			$order->add_meta_data( 'branch_id', 'לא נבחר סניף', false );
+
 		}
 
 	}
@@ -220,11 +234,11 @@ class Matat_Order_Management extends Matat_Site_Management {
 
 
 		if ( $is_production ) {
-			debug($this->order_splitter( $order_id)->get_id());
+			var_dump($this->order_splitter( $order_id)->get_id());
 
 			add_post_meta( $order->get_id(), 'supply_date', '37' );
 			$order = wc_get_order($order->get_id());
-			debug(get_post_meta( $order->get_id(), 'branch_id', true ));
+			var_dump(get_post_meta( $order->get_id(), 'branch_id', true ));
 		}
 
 	}
@@ -328,7 +342,9 @@ class Matat_Order_Management extends Matat_Site_Management {
 				// NOT empty
 				if ( ! empty( $supply_date ) ) {
 					// Output
-					echo $supply_date;
+					$date           = date_create( $supply_date );
+					$formatted_date = date_format( $date, 'd/m/Y' );
+					echo gmdate('d-m-Y',$supply_date);
 				} else {
 					// Output
 					echo __( 'לא נמצא תאריך אספקה', 'matat' );
@@ -347,6 +363,19 @@ class Matat_Order_Management extends Matat_Site_Management {
 					echo __( 'לא נבחר סניף', 'matat' );
 				}
 			}
+			if ( $column == 'order_number' ) {
+				// Get meta, use the correct meta key!
+				$is_prod = $order->get_meta( 'production_order' );
+
+				// NOT empty
+				if ( $is_prod  ) {
+					// Output
+					echo '  הזמנת מטבח  -  ' . $is_prod . ' ';
+				} else {
+					// Output
+				}
+			}
+
 
 
 		}
